@@ -21,27 +21,30 @@ router.post('/signup', async (req, res)=>{
         
         await user.save();
         const token = await user.generateAuthToken()
-        res.status(200).send({user,token})
+        const user1 = {};
+        user1.name = user.name;
+        user1.email = user.email;
+        user1.role = user.role; 
+        res.status(200).send({user1,token})
     } catch(e){
         console.log(e);
         res.status(400).send(e.message);
     }
 })
 router.post('/users/login', async (req, res) => {
-    // const { error, value } = user_Joi.loginSchema().validate(req.body);
-
-    // if (error) {
-    //   return res.status(400).json({ error: error.details[0].message });
-    // }
     try {
         const user = await User.findByCredentials(req.body.email, req.body.password)
         if(!user){
             throw Error("User not found")
         }
         const token = await user.generateAuthToken()
-        res.send({ user, token })
+        const user1 = {};
+        user1.name = user.name;
+        user1.email = user.email;
+        user1.role = user.role; 
+        res.status(200).send({ user1, token })
     } catch (e) {
-        res.status(400).send()
+        res.status(400).send("invalid")
     }
 })
 

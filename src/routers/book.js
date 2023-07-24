@@ -2,6 +2,7 @@ const express = require('express')
 const Book = require('../models/book');
 const auth = require('../middleware/auth')
 const router = new express.Router()
+const addBookSchema = require('../schema/book_schema')
 
 
 router.get('/books', async (req, res)=>{
@@ -43,8 +44,13 @@ router.get('/books/:id',auth, async (req, res)=>{
 
 router.post('/add/book',auth, async(req,res)=>{
     const book = new Book(req.body);
+    const { error, value } = addBookSchema.validate(req.body);
 
-    console.log(req.role)
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
+
+    // console.log(req.role)
     if(req.role==='customer'){
         return res.status(400).send('You are not allowed to do this operation')
     }

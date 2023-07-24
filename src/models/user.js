@@ -61,11 +61,11 @@ const userSchema = mongoose.Schema({
 userSchema.methods.generateAuthToken = async function () {
     const user = this
     const token = jwt.sign({ _id: user._id.toString() }, 'mahavir')
-    console.log(token)
+    // console.log(token)
 
-    console.log(user);
+    // console.log(user);
     user.tokens = user.tokens.concat({ token })
-    console.log(user);
+    // console.log(user);
     await user.save()
     return token
 
@@ -77,43 +77,30 @@ userSchema.methods.generateAuthToken = async function () {
 userSchema.statics.findByCredentials = async (email, password) => {
     const user = await User.findOne({ email })
     if (!user) {
-
         throw new Error('Unable to login')
-
     }
     const isMatch = await bcrypt.compare(password, user.password)
     if (!isMatch) {
 
         throw new Error('Unable to login')
-
     }
     return user
-
 }
 
 
 
 
 
-userSchema.pre('save', async function (next) {
+//userSchema.pre('save', async function (next) {
+//    const user = this
+//     if (user.isModified('password')) {
 
-    const user = this
+//         user.password = await bcrypt.hash(user.password, 8)
 
+//     }
+//     next()
 
-
-
-    if (user.isModified('password')) {
-
-        user.password = await bcrypt.hash(user.password, 8)
-
-    }
-
-
-
-
-    next()
-
-})
+// })
 // const me = new User({
 //     name: '   Mahavireff hdjw  new kkkd',
 //     email:'abc@amexMERAa.com',
