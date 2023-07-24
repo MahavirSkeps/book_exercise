@@ -4,8 +4,14 @@ const auth = require('../middleware/auth')
 const router = new express.Router()
 const bcrypt = require('bcrypt');
 const jwt =require('jsonwebtoken')
+const signupSchema = require('../schema/user_schema')
 
 router.post('/signup', async (req, res)=>{
+    const { error, value } = signupSchema.validate(req.body);
+
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
     
     try{
         const user =   new User(req.body);
