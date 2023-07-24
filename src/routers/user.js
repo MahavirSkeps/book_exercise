@@ -6,12 +6,15 @@ const bcrypt = require('bcrypt');
 const jwt =require('jsonwebtoken')
 const signupSchema = require('../schema/user_schema')
 
+
+
 router.post('/signup', async (req, res)=>{
     const { error, value } = signupSchema.validate(req.body);
 
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
     }
+
     
     try{
         const user = new User(req.body);
@@ -25,6 +28,11 @@ router.post('/signup', async (req, res)=>{
     }
 })
 router.post('/users/login', async (req, res) => {
+    // const { error, value } = user_Joi.loginSchema().validate(req.body);
+
+    // if (error) {
+    //   return res.status(400).json({ error: error.details[0].message });
+    // }
     try {
         const user = await User.findByCredentials(req.body.email, req.body.password)
         if(!user){
