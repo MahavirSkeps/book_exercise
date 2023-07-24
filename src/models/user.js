@@ -26,15 +26,15 @@ const userSchema = mongoose.Schema({
     role:{
         type: String,
         default: "customer",
-        // validate(value){
-        //     if (value!=='customer' && value!='admin'){
-        //         throw new Error('Enter the defined roles')
+        validate(value){
+            if (value!=='customer' && value!='admin'){
+                throw new Error('Enter the defined roles')
 
-        //     }
-        //     if (value==='admin'){
-        //         throw new Error('you not have the right to choose your role admin')
-        //     }
-        // }
+            }
+            if (value==='admin'){
+                throw new Error('you not have the right to choose your role admin')
+            }
+        }
 
     },
     password:{
@@ -60,7 +60,7 @@ const userSchema = mongoose.Schema({
 
 userSchema.methods.generateAuthToken = async function () {
     const user = this
-    const token = jwt.sign({ _id: user._id.toString(),role: user.role }, 'mahavir')
+    const token = jwt.sign({ _id: user._id.toString() }, 'mahavir')
     console.log(token)
 
     console.log(user);
