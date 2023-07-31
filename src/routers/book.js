@@ -8,6 +8,7 @@ const logger = require('../logger')
 
 
 router.get('/books',auth, async (req, res)=>{
+    logger.info(`User ${req.user_id} is attempting to getting info of all books`)
     
     try{
         const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
@@ -18,13 +19,16 @@ router.get('/books',auth, async (req, res)=>{
         res.send( await books).status(200)
     }
     catch(e){
+        logger.error(`error ${e} comes pls check  of ${req.user_id} for getting all book details`)
      return res.status(400).send(e)
     }   
 })
 
 router.get('/books/:id',auth, async (req, res)=>{
+
     // console.log(req.params.id);
     const _id =req.params.id;
+    logger.info(`User ${req.user_id} is attempting to getting info of book of id ${_id}`)
 
     if(req.role==='customer'){
         return res.status(400).send('You are not allowed to do this operation')
@@ -40,11 +44,13 @@ router.get('/books/:id',auth, async (req, res)=>{
         res.send(book)
     }
     catch(e){
+        logger.error(`error ${e} comes pls check  of ${req.user_id} to find book of id: ${_id}`)
      return res.status(500).send(e)
     }  
 })
 
 router.post('/add/book',auth, async(req,res)=>{
+    logger.info(`User ${req.user_id} is attempting to adding book`)
    
     const book = new Book(req.body);
     const { error, value } = addBookSchema.validate(req.body);
@@ -61,13 +67,14 @@ router.post('/add/book',auth, async(req,res)=>{
         await book.save();
         res.send(book);
     } catch(e){
-
+        logger.error(`error ${e} comes pls check  of ${req.user_id} to add book `)
         res.status(400).send("error aa gyabbahi");
     }
 })
 
 router.put('/update/book/:id',auth, async(req,res)=>{
     const _id = req.params.id;    
+    logger.info(`User ${req.user_id} is attempting to update book of id ${_id}`)
 
     if(req.role==='customer'){
         return res.status(400).send('You are not allowed to do this operation')
@@ -86,11 +93,13 @@ router.put('/update/book/:id',auth, async(req,res)=>{
         await book.save()
         res.send(book);
     } catch(e){
+        logger.error(`error ${e} comes pls check  of ${req.user_id} to update book of this id ${_id}`)
        return  res.status(400).send("error aa gyabbahi");
     }
 })
 
 router.delete('/delete/book/:id?',auth, async (req, res)=>{
+    logger.info(`User ${req.user_id} is attempting to delete book of id ${req.params.id}`)
     // console.log(req.params.id);
     const _id =req.params.id;
 
@@ -108,6 +117,7 @@ router.delete('/delete/book/:id?',auth, async (req, res)=>{
         res.send(book)
     }
     catch(e){
+        logger.error(`error ${e} comes pls check  of ${req.user_id} to delete book of this id ${_id}`)
      return res.status(400).send(e.message)
     }  
 })
@@ -122,6 +132,7 @@ async function makePostRequest(postData) {
     const response = await axios.post('https://stoplight.io/mocks/skeps/book-store:master/12094368/misc/payment/process', postData);
     return response.data; // Return the response data
   } catch (error) {
+    
     throw error; // Rethrow the error to handle it elsewhere if needed
   }
 }
@@ -192,6 +203,7 @@ router.post('/buy/book/:id?',auth, async(req,res)=>{
 
     } catch(e){
         console.log(e);
+        logger.error(`error ${e} comes pls check  of ${req.user_id} to buy book of this id ${_id}`)
        return res.status(400).send(e);
     }
 })
