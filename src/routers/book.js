@@ -4,6 +4,7 @@ const auth = require('../middleware/auth')
 const router = new express.Router()
 const addBookSchema = require('../schema/book_schema');
 const order_schema = require('../schema/order_schema');
+const logger = require('../logger')
 
 
 router.get('/books',auth, async (req, res)=>{
@@ -44,6 +45,7 @@ router.get('/books/:id',auth, async (req, res)=>{
 })
 
 router.post('/add/book',auth, async(req,res)=>{
+   
     const book = new Book(req.body);
     const { error, value } = addBookSchema.validate(req.body);
 
@@ -131,32 +133,37 @@ async function makePostRequest(postData) {
 
 
 router.post('/buy/book/:id?',auth, async(req,res)=>{
+    logger.info(`User ${req.user_id} is attempting to buy book  ${req.params.id}`)
     if(req.role!='customer' && req.role!='admin'){
         return res.status(403).send('You are not allowed to do this operation')
     }
     console.log("user_id", req.user_id);
     const _id =req.params.id;
     console.log("id_lenght",_id.length);
-    if(_id.length<24){
+    if(_id.length<24 || _id.length>24){
      return res.status(411).json({ error: "enter valid id" });
     }
-    const book = await Book.findById(_id)
-        if(book==null){
-            // console.log(e.message);
-            return res.status(404).send("book not found")
-        }
-    const { error, value } = order_schema.validate(req.body);
-
-    if (error) {
-      return res.status(400).json({ error: error.details[0].message });
-    }
+   
 
     // console.log(req.role)
    
     try{
+        
+        const book = await Book.findById(_id)
+            if(book==null){
+                // console.log(e.message);
+                logger.warn(`user ${req.user_id} is attempting to buy book of this id: ${_id} which is not found`)
+                return res.status(404).send("book not found")
+            }
+        const { error, value } = order_schema.validate(req.body);
+    
+        if (error) {
+          return res.status(400).json({ error: error.details[0].message });
+        }
       
        const order_Sch = req.body;
        if(order_Sch.count> book.stock){
+        logger.warn(`user ${req.body.email} is attempting to buy book of id${_id} which is not in stock`)
        return  res.status(409).send("count should be less then stock try again")
     }
        console.log(order_Sch);
