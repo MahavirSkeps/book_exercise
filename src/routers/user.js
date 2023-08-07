@@ -5,7 +5,8 @@ const router = new express.Router()
 const bcrypt = require('bcrypt');
 const jwt =require('jsonwebtoken')
 const signupSchema = require('../schema/user_schema')
-
+const logger = require('../logger')
+const path = require('path')
 
 
 router.post('/signup', async (req, res)=>{
@@ -37,14 +38,22 @@ router.post('/users/login', async (req, res) => {
         if(!user){
             throw Error("User not found")
         }
-        const token = await user.generateAuthToken()
+        const token = await user.tokens[0].token
         const user1 = {};
         user1.name = user.name;
         user1.email = user.email;
         user1.role = user.role; 
-        res.status(200).send({ user1, token })
+        res.status(200).json({
+            "name":user.name,
+            "email": user.email,
+            "role" : user.role,
+            "token" : token
+        })
     } catch (e) {
-        res.status(400).send("invalid")
+        console.log(e.message)
+        res.status(400).json({
+            "message": "invalid",
+            "error" : e.message})
     }
 })
 
@@ -72,6 +81,7 @@ router.get('/user:id', async (req, res)=>{
     }
    
 })
+
 
 
 

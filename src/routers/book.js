@@ -5,6 +5,7 @@ const router = new express.Router()
 const addBookSchema = require('../schema/book_schema');
 const order_schema = require('../schema/order_schema');
 const logger = require('../logger')
+const Sentry = require('../sentry/sentry') 
 
 
 router.get('/books',auth, async (req, res)=>{
@@ -12,7 +13,7 @@ router.get('/books',auth, async (req, res)=>{
     
     try{
         const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
-        const limit = parseInt(req.query.limit) || 2; // Default to 10 items per page if not provided
+        const limit = parseInt(req.query.limit) || 6; // Default to 10 items per page if not provided
 
         const skip = (page - 1) * limit;
         const books = Book.find({}).limit(limit).skip(skip);
@@ -20,6 +21,7 @@ router.get('/books',auth, async (req, res)=>{
     }
     catch(e){
         logger.error(`error ${e} comes pls check  of ${req.user_id} for getting all book details`)
+        Sentry.captureException(error);
      return res.status(400).send(e)
     }   
 })
@@ -45,6 +47,7 @@ router.get('/books/:id',auth, async (req, res)=>{
     }
     catch(e){
         logger.error(`error ${e} comes pls check  of ${req.user_id} to find book of id: ${_id}`)
+        Sentry.captureException(error);
      return res.status(500).send(e)
     }  
 })
@@ -68,6 +71,7 @@ router.post('/add/book',auth, async(req,res)=>{
         res.send(book);
     } catch(e){
         logger.error(`error ${e} comes pls check  of ${req.user_id} to add book `)
+        
         res.status(400).send("error aa gyabbahi");
     }
 })
@@ -145,6 +149,10 @@ async function makePostRequest(postData) {
 
 router.post('/buy/book/:id?',auth, async(req,res)=>{
     logger.info(`User ${req.user_id} is attempting to buy book  ${req.params.id}`)
+    await   Sentry.addBreadcrumb({
+        message: 'User ${req.user_id} is attempting to buy book  ${req.params.id}`',
+        level: Sentry.Info, // or 'info'
+      });
     if(req.role!='customer' && req.role!='admin'){
         return res.status(403).send('You are not allowed to do this operation')
     }
@@ -174,6 +182,10 @@ router.post('/buy/book/:id?',auth, async(req,res)=>{
       
        const order_Sch = req.body;
        if(order_Sch.count> book.stock){
+        Sentry.addBreadcrumb({
+            message: 'User ${req.user_id} is attempting to buy book  ${req.params.id}`',
+            level: Sentry.error, // or 'info'
+          });
         logger.warn(`user ${req.body.email} is attempting to buy book of id${_id} which is not in stock`)
        return  res.status(409).send("count should be less then stock try again")
     }
@@ -204,6 +216,7 @@ router.post('/buy/book/:id?',auth, async(req,res)=>{
     } catch(e){
         console.log(e);
         logger.error(`error ${e} comes pls check  of ${req.user_id} to buy book of this id ${_id}`)
+        Sentry.captureException(error);
        return res.status(400).send(e);
     }
 })
